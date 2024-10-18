@@ -10,7 +10,9 @@ library(tidyverse)
 library(minpack.lm)
 ```
 
+ The innovation "Virtual Fauna" shares similarities with AR (Augmented Reality) due to their common focus on blending the physical and digital worlds. Virtual Fauna, like AR, utilizes technology to create interactive digital creatures that can inhabit real-world environments through devices like smartphones or AR glasses. Both innovations enhance user experiences by overlaying digital elements onto reality. 
 
+In terms of market impact, AR revolutionized industries like gaming (e.g., Pokémon GO) and retail (virtual try-ons), while Virtual Fauna can similarly impact entertainment, education, and wildlife simulation, offering immersive interactions with virtual animals.
 
 ```{r}
 data <- read.csv('Data.csv', stringsAsFactors = FALSE, sep = ";")
