@@ -1,0 +1,114 @@
+---
+title: "Homework 1"
+author: "Ruzanna Margaryan"
+date: "2024-10-18"
+output: pdf_document
+---
+
+```{r}
+library(tidyverse)
+library(minpack.lm)
+```
+
+
+
+```{r}
+data <- read.csv('Data.csv', stringsAsFactors = FALSE, sep = ";")
+data$AR.Hardware <- as.numeric(data$AR.Hardware)
+data$AR.Software <- as.numeric(data$AR.Software)
+data$AR.Hardware[is.na(data$AR.Hardware)] <- 0
+filtered_data <- data %>% filter(Year <= 2023) %>%
+  select(Year, AR.Software, AR.Hardware)
+filtered_data <- filtered_data %>%
+  mutate(Total.AR.Adoption = AR.Software + AR.Hardware)
+filtered_data
+```
+
+
+```{r}
+bass_model_cumulative <- function(t, p, q, M) {
+  adoption <- M * (1 - exp(-(p + q) * t)) / (1 + (q / p) * exp(-(p + q) * t))
+  return(adoption)
+}
+
+time_periods <- 1:nrow(filtered_data)
+total_adoption <- filtered_data$Total.AR.Adoption
+
+initial_guess <- c(p = 0.03, q = 0.38, M = max(total_adoption) * 2)
+
+fit <- nlsLM(Total.AR.Adoption ~ bass_model_cumulative(time_periods, p, q, M), 
+             data = filtered_data, start = initial_guess)
+
+params <- coef(fit)
+p <- params['p']
+q <- params['q']
+M <- params['M']
+```
+
+```{r}
+cat("Estimated p (Coefficient of innovation):", p, "\n")
+cat("Estimated q (Coefficient of imitation):", q, "\n")
+cat("Estimated M (Market potential):", M, "\n")
+
+```
+
+
+
+```{r}
+
+future_years <- 1:(nrow(filtered_data) + 12)
+
+predicted_cumulative_adoption <- bass_model_cumulative(future_years, p, q, M)
+predicted_yearly_adoption <- c(0, diff(predicted_cumulative_adoption))
+
+prediction_df <- data.frame(
+  Year = 2020:(2020 + length(future_years) - 1),
+  Cumulative_Adoption = predicted_cumulative_adoption,
+  Yearly_Adoption = predicted_yearly_adoption
+)
+
+print(prediction_df)
+
+```
+
+
+
+
+```{r}
+
+plot(prediction_df$Year, prediction_df$Cumulative_Adoption, type = "o", col = "blue", 
+     xlab = "Year", ylab = "Adoption", main = "Predicted Diffusion Path of AR Software + AR Hardware (Bass Model)",
+     ylim = range(c(prediction_df$Cumulative_Adoption, prediction_df$Yearly_Adoption)))
+
+lines(prediction_df$Year, prediction_df$Yearly_Adoption, type = "o", col = "green", lty = 2)
+
+legend("topleft", legend = c("Cumulative Adoption", "Yearly Adoption"), col = c("blue", "green"), 
+       lty = c(1, 2), pch = c(1, 1))
+
+grid()
+
+```
+
+
+As my data is related to only Italy I decided to analyze the diffusion focusing on a country-specific analysis.
+
+```{r}
+
+bass_model_cumulative <- function(t, p, q, M) {
+  adoption <- M * (1 - exp(-(p + q) * t)) / (1 + (q / p) * exp(-(p + q) * t))
+  return(adoption)
+}
+future_years <- 1:15
+
+predicted_cumulative_adoption <- bass_model_cumulative(future_years, p, q, M)
+
+predicted_yearly_adoption <- c(0, diff(predicted_cumulative_adoption))
+
+adoption_df <- data.frame(
+  Year = 2020:(2020 + length(future_years) - 1),
+  Cumulative_Adoption = predicted_cumulative_adoption,
+  Yearly_Adoption = predicted_yearly_adoption
+)
+
+print(adoption_df)
+```
